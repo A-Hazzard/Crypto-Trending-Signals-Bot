@@ -1,6 +1,6 @@
 ﻿# Trend Signals Bot
 
-Trend Signals Bot is a Python application for generating trading signals based on trend analysis of cryptocurrency pairs. It utilizes technical indicators to identify potential trends and provides signals for entering trades.
+Trend Signals Bot is a Python application for generating trading signals based on trend analysis of cryptocurrency pairs. It utilizes technical indicators to identify potential trends and provides signals for entering and exiting trades.
 
 ## Features
 
