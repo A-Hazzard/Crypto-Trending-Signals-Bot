@@ -8,7 +8,7 @@ Trend Signals Bot is a Python application for generating trading signals based o
 - Supports customization of cryptocurrency pairs to monitor.
 - Provides entry ranges for trading signals.
 - Dynamically adjusts parameters based on market conditions.
-
+- Insure you run the dockerfile on windows only or else you will have to adjust it
 ## Installation
 
 1. Clone the repository:
