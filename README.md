@@ -26,6 +26,7 @@ Create a `.env` file in the project root directory and add your Binance API key 
 ```
 BINANCE_API_KEY=<your-api-key>
 BINANCE_API_SECRET=<your-api-secret>
+DISCORD_WEBHOOK_URL=<your-discord-webhook-url>
 ```
 
 ## Usage
