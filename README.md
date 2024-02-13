@@ -13,7 +13,7 @@ Trend Signals Bot is a Python application for generating trading signals based o
 
 1. Clone the repository:
 ```
-git clone <repository-url>
+git clone https://github.com/A-Hazzard/Crypto-Trending-Signals
 ```
 
 2. Install the dependencies:
