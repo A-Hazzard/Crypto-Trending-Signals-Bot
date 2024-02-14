@@ -42,7 +42,7 @@ docker build -t trend-signals .
 
 3. Run the Docker container:
 ```
-docker run --name trend-signals-container trend-signals
+docker run -d --name trend-signals-container trend-signals
 ```
 
 ## Customization

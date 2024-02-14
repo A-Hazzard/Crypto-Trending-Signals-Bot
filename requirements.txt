@@ -6,3 +6,4 @@ schedule
 matplotlib
 python-binance
 pytest
+asyncio
