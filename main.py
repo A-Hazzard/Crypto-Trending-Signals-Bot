@@ -43,7 +43,7 @@ async def consume_websocket(url):
         # Subscribe to the APTUSDT trading pair
         await ws.send(json.dumps({
             "method": "SUBSCRIBE",
-            "params": ["aptusdt@kline_5m"],  # Subscribe to APTUSDT 1-minute candlesticks
+            "params": ["xrpusdt@kline_5m"],  # Subscribe to APTUSDT 1-minute candlesticks
             "id": 1
         }))
 
@@ -64,7 +64,7 @@ async def consume_websocket(url):
                 last_processed_time = asyncio.get_event_loop().time()
 
 async def main():
-    binance_ws_url = "wss://stream.binance.com:9443/ws/aptusdt@kline_5m"
+    binance_ws_url = "wss://stream.binance.com:9443/ws/xrpusdt@kline_5m"
     await consume_websocket(binance_ws_url)
 
 if __name__ == "__main__":
