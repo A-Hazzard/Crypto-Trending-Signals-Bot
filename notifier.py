@@ -1,15 +1,19 @@
 import requests
 import os
 from dotenv import load_dotenv
+import logging
+
 load_dotenv()  # This loads the variables from .env into the environment
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 def send_discord_notification(signal):
     webhook_url = os.getenv('DISCORD_WEBHOOK_URL')
     if not webhook_url:
-        print("Error: DISCORD_WEBHOOK_URL is not set.")
+        logger.error("Error: DISCORD_WEBHOOK_URL is not set.")
         return
 
-    # Convert string to float for formatting, and back to string for message construction
     entry_range = f"{float(signal['entry_range']):.4f}"
     dca_limit = f"{float(signal['dca_limit']):.4f}"
     stop_loss = f"{float(signal['stop_loss']):.4f}"
@@ -30,7 +34,7 @@ def send_discord_notification(signal):
     try:
         response = requests.post(webhook_url, json=data)
         response.raise_for_status()
-        print("Notification sent successfully.")
+        logger.info("Notification sent successfully.")
     except requests.exceptions.RequestException as e:
-        print(f"Failed to send notification: {e}")
-
+        logger.error(f"Failed to send notification: {e}")
+        # Implement retry logic here if needed

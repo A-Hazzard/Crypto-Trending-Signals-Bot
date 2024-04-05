@@ -1,44 +1,45 @@
 import asyncio
 import json
-import websockets  # Ensure this is installed
-import random  # For demonstration signal generation
+import websockets
+import random
+import logging
 
-# Assuming you've imported your notifier correctly
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 from notifier import send_discord_notification
 
 async def process_signals(accumulated_data):
     """Process accumulated data for signals and send notifications."""
-    if accumulated_data:  # Check if there's accumulated data to process
-        print("Processing signals based on accumulated data...")
+    if accumulated_data:
+        logger.info("Processing signals based on accumulated data...")
         
         for data in accumulated_data:
-            # Skip messages that do not contain expected keys
             if 'k' not in data or 's' not in data:
-                print("Skipping message without 'k' or 's' key.")
+                logger.warning("Skipping message without 'k' or 's' key.")
                 continue
 
-            # Use data safely after confirming its structure
             signal_type = random.choice(['BUY', 'SELL'])
-            latest_data = data  # Use the validated data
+            latest_data = data
             signal = {
-                'pair': latest_data['s'],  # Symbol from the latest message
+                'pair': latest_data['s'],
                 'type': signal_type,
-                'entry_range': latest_data['k']['c'],  # Closing price as entry range
-                'dca_limit': float(latest_data['k']['c']) * 0.98,  # Example calculation
-                'stop_loss': float(latest_data['k']['c']) * 0.95,  # Example calculation
-                'take_profits': [float(latest_data['k']['c']) * 1.05,  # Example calculations
+                'entry_range': latest_data['k']['c'],
+                'dca_limit': float(latest_data['k']['c']) * 0.98,
+                'stop_loss': float(latest_data['k']['c']) * 0.95,
+                'take_profits': [float(latest_data['k']['c']) * 1.05,
                                  float(latest_data['k']['c']) * 1.10,
                                  float(latest_data['k']['c']) * 1.15]
             }
-            # Send a notification for the generated signal
             try:
                 send_discord_notification(signal)
-                print("Notification sent successfully!") # Log here on success
+                logger.info("Notification sent successfully!")
             except Exception as e:
-                print(f"Error sending notification: {e}")
+                logger.error(f"Error sending notification: {e}")
 
 async def consume_websocket(base_url):
-    pairs = ["ordiusdt", "rifusdt", "avaxusdt", "ensusdt", "ctsiusdt", "acheusdt"]
+    pairs = ["dydxusdt", "shibusdt", "galausdt", "ltcusdt"]
 
     async with websockets.connect(base_url) as ws:
         params = [f"{pair}@kline_5m" for pair in pairs]
@@ -54,29 +55,36 @@ async def consume_websocket(base_url):
         immediate_processing_done = False
 
         while True:
-            message = await ws.recv()
-            message_data = json.loads(message)
+            try:
+                message = await asyncio.wait_for(ws.recv(), timeout=10)  # Timeout after 10 seconds
+                message_data = json.loads(message)
+                
+                if 'result' in message_data or 'id' in message_data:
+                    logger.info("Control message received, skipping: %s", message_data)
+                    continue
 
-            # Check if message is a control message (e.g., subscription confirmation)
-            if 'result' in message_data or 'id' in message_data:
-                print("Control message received, skipping: ", message_data)
-                continue  # Skip processing for control messages
+                if 'k' in message_data and 's' in message_data:
+                    accumulated_data.append(message_data)
+                else:
+                    logger.warning("Skipping message without 'k' or 's' key: %s", message_data)
+                    continue
 
-            # Check if message has the expected structure before appending
-            if 'k' in message_data and 's' in message_data:
-                accumulated_data.append(message_data)
-            else:
-                print("Skipping message without 'k' or 's' key: ", message_data)
-                continue  # Skip to the next message
+                current_time = asyncio.get_event_loop().time()
+                if not immediate_processing_done or current_time - last_processed_time >= 5400:
+                    logger.info("Searching for buy or sell signals...")
+                    await process_signals(accumulated_data)
+                    accumulated_data.clear()
+                    last_processed_time = current_time
+                    immediate_processing_done = True
 
-            # Immediate and periodic processing logic here (unchanged)
-            current_time = asyncio.get_event_loop().time()
-            if not immediate_processing_done or current_time - last_processed_time >= 5400:
-                print("Searching for buy or sell signals...")
-                await process_signals(accumulated_data)
-                accumulated_data.clear()
-                last_processed_time = current_time
-                immediate_processing_done = True
+            except asyncio.TimeoutError:
+                logger.warning("WebSocket receive timed out.")
+                # Implement reconnection logic here if needed
+                pass
+            except Exception as e:
+                logger.error("Error in WebSocket communication: %s", e)
+                # Implement error handling and reconnection logic here if needed
+                pass
 
 async def main():
     binance_ws_base_url = "wss://stream.binance.com:9443/ws"
